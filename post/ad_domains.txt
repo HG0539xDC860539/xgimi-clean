@@ -1,0 +1,29 @@
+# 路由器 DNS 屏蔽清单（广告 / 遥测 / 追踪）
+# 极米广告与内容下发
+adapi.xgimi.com
+adapi.t.xgimi.com
+gossapit.xgimi.com
+gossapit.gateway.i.xgimi.com
+# 注意: static.t.xgimi.com 同时承载皮肤/氛围资源, 桌面已净化时可屏蔽
+static.t.xgimi.com
+# 友盟统计
+alog.umeng.com
+alog.umengcloud.com
+uop.umeng.com
+log.umsns.com
+# 腾讯 Bugly 崩溃/遥测
+android.bugly.qq.com
+astat.bugly.qcloud.com
+astat.bugly.cros.wr.pvp.net
+rqd.uu.qq.com
+# 小米广告 SDK 配置
+sdkconfig.ad.xiaomi.com
+# 第三方数据采集
+collection.shixunsuda.com
+# 乐播投屏广告与日志 (如需投屏功能请勿屏蔽 pin/auth/gslb 相关域名)
+adeng.hpplay.cn
+logu.hpplay.cn
+conf.hpplay.cn
+# 如已禁用 com.xgimi.upgrade 并想彻底阻断 OTA 检查, 可再加:
+# gmui-api.goss.xgimi.com
+# app.goss.xgimi.com

@@ -1,0 +1,14 @@
+# 密钥与产物
+scripts/scripts_key
+scripts/scripts_key.pub
+scripts/out/
+
+# 备份（含厂商版权内容, 勿提交）
+fw_backup*/
+*.img
+*.img.gz
+*.bin
+
+# 系统
+.DS_Store
+Thumbs.db
