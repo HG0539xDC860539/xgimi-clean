@@ -1,152 +1,169 @@
-# XGIMI Clean —— 极米投影仪去广告 / Root 工具包
+# XGIMI Clean — de-bloat & root toolkit for XGIMI GMUI projectors
 
-> 适用机型：极米 **NEW Z6X**（IRONMAN / XK03U / m7221 平台，GMUI）
-> 理论兼容：同平台同年代的 Z6X Pro / Z7X / H 系列等 GMUI 机型（未逐一验证）
-> 原则：**不动系统分区、不刷机、全部操作可逆**，保留官方最新固件与界面
+[English](README.md) | [简体中文](README.zh-CN.md)
+
+> **Tested on:** XGIMI **NEW Z6X** (IRONMAN / XK03U, MediaTek m7221, GMUI 6.9.102.01, Android 8.0)
+> **Likely compatible:** other GMUI-era machines of the same generation (Z6X Pro / Z7X / H series) — not individually verified
+> **Principles:** no system-partition changes, no flashing, **every step reversible**; the latest stock firmware and UI stay
 
 ---
 
-## 这是什么
+## What this is
 
-极米 GMUI 系统内置了完整的广告与遥测体系（广告服务、氛围壁纸、屏保广告、活动弹窗、数据上报），
-且新版固件阉割了用户侧的 ADB 开关、系统也没有开发者模式入口。
+China-market XGIMI projectors run **GMUI**, which ships a full advertising and telemetry stack: an ad
+service, ambient-wallpaper ads, screensaver ads, pop-up promotions, and behavioural reporting. On top
+of that, recent firmware removed the user-facing ADB switch, and the system has no developer-options
+menu at all — so the usual "connect ADB and disable stuff" route is closed.
 
-本项目提供一条**纯局域网 / U 盘**的净化路线：
+This toolkit provides a **pure LAN / USB-stick route**:
 
-1. 利用系统内置的售后 SSH 机制（`xgimi_ssh` 服务）拿到 **root 任意命令执行**
-2. 写入你自己的 ADB 授权密钥，让 `adb connect` 直接可用
-3. 用 `pm uninstall --user 0` 卸载广告组件（可随时恢复）
-4. 全量备份当前固件分区，随时可完整还原
-
-```
-U盘装一个终端 App（10 秒）
-        │
-        ▼
-写入 /data/ssh/authorized_keys + setprop   ← g 脚本
-        │
-        ▼
-xgimi_ssh.sh (root) 启动 sshd                ← 系统自己的售后逻辑
-        │
-        ▼
-params + ProxyCommand = root 维护命令        ← p2/p3 协助脚本
-        │
-        ▼
-ADB 授权 ✓ → pm uninstall 广告全家桶 ✓ → 固件备份 ✓
-```
-
-## 目录结构
+1. Re-use the vendor's own after-sales SSH mechanism (`xgimi_ssh`) to run commands as **root**
+2. Write in your own ADB key, so `adb connect` works from then on
+3. Remove the ad components with `pm uninstall --user 0` (reversible at any time)
+4. Back up every firmware partition, so the device can always be fully restored
 
 ```
-docs/        完整技术文档（设备盘点、固件解包、root机制、净化清单、备份恢复）
-tools/       固件解析、端口扫描等辅助脚本
-scripts/     g / p2 / p3 / p4 生成器（make_scripts.py 一键生成，写入你自己的密钥）
-post/        净化、备份、恢复脚本 + 广告域名屏蔽清单
+Put a terminal app on a USB stick (10 seconds)
+        │
+        ▼
+write /data/ssh/authorized_keys + setprop      ← g script
+        │
+        ▼
+xgimi_ssh.sh (root) starts sshd                ← the vendor's own service logic
+        │
+        ▼
+params + ProxyCommand = root maintenance cmd   ← p2/p3 helper scripts
+        │
+        ▼
+ADB authorised ✓ → pm uninstall the ad suite ✓ → full firmware backup ✓
 ```
 
-## 快速开始
+The full technical documentation (in Simplified Chinese, English summaries at the top of each file)
+lives in [`docs/`](docs/): device survey, firmware unpacking, the root mechanism, the de-bloat list,
+backup & restore.
 
-### 0. 准备
-- 一台与投影仪同网段的电脑（装有 Python 3、adb）
-- 一只 U 盘
-- 两个 APK 都在本仓库 [`third_party/`](third_party/) 目录：
-  - **TermOne Plus**（GPL-3.0）—— 终端模拟器，无需联网初始化
-  - **Z7X-ADB 开启器**（MIT）—— 让 adbd 监听 5555
+## Repository layout
 
-### 1. 生成你自己的维护脚本
+```
+docs/        full technical docs (Chinese, with English abstracts)
+tools/       firmware parsing, port scanning helpers
+scripts/     g / p2 / p3 / p4 generators (make_scripts.py builds them with YOUR keys inside)
+post/        debloat / backup / restore scripts + ad-domain blocklist
+third_party/ the two sideload APKs (TermOne Plus, GPL-3.0; Z7X-ADB opener, MIT)
+```
+
+## Quick start
+
+### 0. Prepare
+- A computer on the same LAN as the projector (Python 3 + `adb`)
+- A USB stick
+- Both APKs are in [`third_party/`](third_party/):
+  - **TermOne Plus** (GPL-3.0) — terminal emulator, needs no network setup
+  - **Z7X-ADB opener** (MIT) — makes adbd listen on 5555
+
+### 1. Generate your personal maintenance scripts
 ```bash
 python scripts/make_scripts.py
-# 自动生成 ssh 密钥对（若无）并产出 scripts/out/{g,p2,p3,p4}
-# 同时生成 scripts/out/serve/ 目录，内含全部待下发文件
+# generates an SSH keypair (if none) and produces scripts/out/{g,p2,p3,p4}
+# plus scripts/out/serve/ holding every file the projector will pull
 ```
 
-### 2. 起本地 HTTP 服务（供投影仪拉取脚本）
+### 2. Serve them over HTTP
 ```bash
 cd scripts/out/serve
-python -m http.server 8000 --bind 0.0.0.0   # 记下你电脑的 IP，下文称 <PC_IP>
+python -m http.server 8000 --bind 0.0.0.0   # note your PC's IP, called <PC_IP> below
 ```
 
-### 3. 投影仪上安装并打开 TermOne Plus（U 盘安装）
+### 3. Sideload & open TermOne Plus on the projector (USB stick)
 
-### 4. 开启网络 ADB（Z7X-ADB 开启器）
-安装 `third_party/Z7X-ADB-v1.1.0.apk`（U 盘安装后打开运行一次）。
-> 本步骤给出 `persist.adb.tcp.port=5555` 等属性，使 adbd 监听 5555。
-> 此时 `adb connect <IP>:5555` 会显示 `unauthorized`——正常，下一步解决。
+### 4. Enable network ADB (Z7X-ADB opener)
+Install and run `third_party/Z7X-ADB-v1.1.0.apk` once. It sets
+`persist.adb.tcp.port=5555` etc., so adbd listens on 5555.
+`adb connect <IP>:5555` will show `unauthorized` at this point — expected; next step fixes it.
 
-### 5. 完成 root 授权（在 TermOne 里执行）
+### 5. Complete the root authorisation (inside TermOne)
 ```sh
-busybox wget -O g http://<PC_IP>:8000/g;sh g      # 启动厂商 root sshd
-busybox wget -O p2 http://<PC_IP>:8000/p2;sh p2   # 以 root 执行维护脚本
-busybox wget -O p3 http://<PC_IP>:8000/p3;sh p3   # adb 授权 + 块设备可读
+busybox wget -O g http://<PC_IP>:8000/g;sh g   # start the vendor root sshd
+busybox wget -O p2 http://<PC_IP>:8000/p2;sh p2  # run maintenance script as root
+busybox wget -O p3 http://<PC_IP>:8000/p3;sh p3  # ADB key + make block devices readable
 ```
-看到 `p3 done` 后，电脑上：
+After `p3 done`, on the computer:
 ```bash
-adb connect <投影仪IP>:5555     # 这次是 device（已授权）
+adb connect <projector IP>:5555     # now shows "device" (authorised)
 ```
 
-### 6. 净化
+### 6. De-bloat
 ```bash
-bash post/debloat.sh <投影仪IP>:5555          # 卸载广告组件 + 禁用OTA
-bash post/backup_fw.sh <投影仪IP>:5555        # 全量固件备份（强烈建议先做）
+bash post/debloat.sh <projector IP>:5555     # remove ad components + disable OTA
+bash post/backup_fw.sh <projector IP>:5555   # full firmware backup (strongly recommended first)
 ```
 
-### 7.（推荐）安装永久 root 触发器
+### 7. (Recommended) permanent root trigger
 ```sh
-busybox wget -O p4 http://<PC_IP>:8000/p4;sh p4   # TermOne 里执行
+busybox wget -O p4 http://<PC_IP>:8000/p4;sh p4   # in TermOne
 ```
-之后任何时候：`adb shell "echo '你的命令' > /data/local/tmp/rc.sh; setprop pc.root.go 1"` 即可以 root 执行。
+Afterwards, any time: `adb shell "echo 'your command' > /data/local/tmp/rc.sh; setprop pc.root.go 1"`
+runs it as root.
 
-## 卸载了什么
+## What gets removed
 
-| 包名 | 作用 | 处置 |
+| Package | Purpose | Action |
 |---|---|---|
-| com.xgimi.adservice | 广告服务主程序 | 卸载 |
-| com.xgimi.atmosphere | 氛围/音乐墙广告 | 卸载 |
-| com.xgimi.screensaver | 屏保广告 | 卸载 |
-| com.xgimi.datareporter | 数据遥测上报 | 卸载 |
-| com.xgimi.activitypage | 活动页/弹窗广告 | 卸载 |
-| com.xgimi.upgrade | 系统升级（防OTA回滚） | 禁用（可逆） |
+| `com.xgimi.adservice` | ad service core | uninstall |
+| `com.xgimi.atmosphere` | ambient / music-wall ads | uninstall |
+| `com.xgimi.screensaver` | screensaver ads | uninstall |
+| `com.xgimi.datareporter` | behavioural telemetry | uninstall |
+| `com.xgimi.activitypage` | pop-up promotions | uninstall |
+| `com.xgimi.upgrade` | system updater (blocks OTA re-installing ads) | disable (reversible) |
 
-全部为 `--user 0` 级别，恢复命令见 `post/restore.sh`。
+All removals are `--user 0` level; restore with `post/restore.sh` (one command, or per package).
 
-## 技术原理（简版，详见 docs/）
+**Hardware services you must NOT touch** — keystone correction, ToF autofocus, the HDMI input
+player, the MStar input/hotkey stack, remote pairing — are documented in
+[docs/04-debloat.md](docs/04-debloat.md), cross-checked against the overseas XGIMI DO-NOT-DISABLE
+lists of the [cleanyourtv](https://github.com/Gathin23/cleanyourtv) project.
 
-- **root 机制**：GMUI 固件预装了厂商售后维护服务 `/vendor/bin/xgimi_ssh.sh`——
-  `service xgimi_ssh`（init.xgimi.rc，**root**、`oneshot`）执行该脚本；
-  脚本读取属性 `xgimi.remoteDebug.on`，为 `true` 时启动 root sshd，
-  并执行 `/system/bin/ssh $(cat /data/ssh/params)`。
-  `/data/ssh` 目录为 **0777**，任何 App 可写 `params`；
-  于是 `params = -oProxyCommand=/data/ssh/p 127.0.0.1` 令 root 的 ssh 客户端
-  在连接前执行设备所有者准备的维护脚本 → **以 root 权限执行维护命令**。
-- **ADB 授权**：root 执行 `echo <adbkey.pub> >> /data/misc/adb/adb_keys`。
-- 原版固件中 USB/网络 ADB 本就是售后依赖通道（vendor/build.prop 含
-  `persist.adb.tcp.port=5555`），仅新版移除了用户侧开关。
+## How the root mechanism works (short version)
 
-## 常见问题
+- GMUI firmware ships a vendor after-sales service: `service xgimi_ssh` (init.xgimi.rc, **root**,
+  oneshot) runs `/vendor/bin/xgimi_ssh.sh`. When the property `xgimi.remoteDebug.on` is `true`, it
+  starts a root sshd and executes `/system/bin/ssh $(cat /data/ssh/params)`.
+- `/data/ssh` is mode **0777**, so any app can write `params`;
+  `params = -oProxyCommand=/data/ssh/p 127.0.0.1` makes the root ssh client execute a maintenance
+  script prepared by the device owner **before** connecting → maintenance commands run as root.
+- ADB authorisation: root appends your public key to `/data/misc/adb/adb_keys`.
+- On the original firmware, USB/network ADB was itself an after-sales channel
+  (`vendor/build.prop` contains `persist.adb.tcp.port=5555`); recent builds only removed the
+  user-facing switch.
 
-**为什么装了 Z7X-ADB、ADB 显示已开启，连上却还是 unauthorized？**
-Z7X-ADB 只让 adbd 开始监听；本机 adbd 运行在安全模式（ro.adb.secure=1），
-需要你的公钥写入 /data/misc/adb/adb_keys，而 GMUI 没有授权弹窗、该文件仅 root 可写。
-g/p2 脚本就是借 xgimi_ssh root 服务把你的公钥写进去，从里面开门。
-详见 [docs/06-faq.md](docs/06-faq.md)。
+## FAQ
 
-## 风险与免责声明
+**Why does ADB still say `unauthorized` after the Z7X-ADB opener ran?**
+The opener only makes adbd listen. This unit's adbd runs in secure mode (`ro.adb.secure=1`): your
+public key must be written to `/data/misc/adb/adb_keys`, GMUI shows no authorisation dialog, and
+that file is root-only. The g/p2 scripts use the `xgimi_ssh` root service to write your key in —
+opening the door from the inside. Details in [docs/06-faq.md](docs/06-faq.md).
 
-- 本项目所有能力均来自设备厂商在固件中**预装并预留**的调试/售后维护接口
-  （xgimi_ssh 服务、调试属性、工程菜单等），本项目不包含、也不提供任何
-  绕过厂商安全设计的代码；全部操作在**设备所有者本人授权**下进行
-- 仅适用于**你自己的设备**。未经设备所有者授权对他人设备进行操作
-  可能违反《网络安全法》《刑法》等相关法律法规
-- 去除预装组件可能违反厂商服务条款，可能影响保修，请自行评估
-- 所有系统级操作前请先运行 `post/backup_fw.sh` 做全量备份
-- `pm uninstall --user 0` 均可用 `cmd package install-existing` 恢复；
-  `com.xgimi.upgrade` 禁用后若需OTA升级先 `pm enable`
-- 请勿将本项目用于盗版、规避付费等用途
+## Legal & disclaimer
 
-## 致谢
+- Every capability in this project comes from debugging/after-sales interfaces the vendor itself
+  **pre-installed and reserved** in the firmware (the `xgimi_ssh` service, debug properties, the
+  engineering menu). This project contains, and provides, no code that bypasses the vendor's
+  security design; all operations happen with the **device owner's own authorisation**.
+- For **your own devices** only. Operating someone else's device without the owner's consent may
+  violate applicable law.
+- Removing pre-installed components may violate the vendor's terms of service and may affect
+  warranty — evaluate for yourself.
+- Run `post/backup_fw.sh` for a full backup before any system-level operation.
+- Every `pm uninstall --user 0` can be undone with `cmd package install-existing`; re-enable
+  `com.xgimi.upgrade` (`pm enable`) before accepting an OTA update.
+- Do not use this project for piracy or circumventing paid services.
 
-- [code-ant/z7x-adb](https://github.com/code-ant/z7x-adb) —— ADB 属性开启思路与开启器 APK
-- [TermOne Plus](https://f-droid.org/en/packages/com.termoneplus/)（F-Droid）
-- 所有折腾过极米设备的 ZNDS / 投影网 前辈
+## Credits
+
+- [code-ant/z7x-adb](https://github.com/code-ant/z7x-adb) — the ADB-property idea and the opener APK
+- [TermOne Plus](https://f-droid.org/en/packages/com.termoneplus/) (F-Droid)
+- Everyone who tinkered with XGIMI devices on the ZNDS / TouYing forums before this
 
 ## License
 

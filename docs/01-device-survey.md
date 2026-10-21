@@ -1,5 +1,8 @@
 # 01 —— 设备盘点：开放的服务
 
+> **EN abstract:** A survey of the services this projector exposes on the LAN (open ports, the settings-app debug backdoor on 8080, DLNA/RTSP, and how network ADB was removed on newer firmware), plus a full installed-package snapshot. Done on our own device.
+
+
 > 以下梳理均针对**自有设备**进行（设备所有者授权下的配置与排查），
 > 目的是了解系统预装了哪些服务、它们提供哪些厂商预留的维护能力。
 > 实测对象：极米 NEW Z6X（GMUI v12.15.214，m7221/MStar 平台）；

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # backup_fw.sh —— 全量固件分区备份 (需先完成 p3: 块设备 chmod 666)
-# 用法: bash backup_fw.sh <投影仪IP>:5555 [输出目录]
+# backup_fw.sh — full firmware-partition backup (requires p3 first: block devices chmod 666)
+# 用法 / Usage: bash backup_fw.sh <IP>:5555 [输出目录|output dir]
 set -e
-DEV="${1:?用法: bash backup_fw.sh <IP>:5555 [输出目录]}"
+DEV="${1:?用法 / usage: bash backup_fw.sh <IP>:5555 [output dir]}"
 OUT="${2:-./fw_backup_$(date +%Y%m%d_%H%M%S)}"
 mkdir -p "$OUT"
 
@@ -56,6 +57,6 @@ cat > "$OUT/MANIFEST.txt" << 'EOF'
   gunzip -c boot.img.gz | adb shell "dd of=/dev/block/mmcblk0p5 bs=4096"
 EOF
 
-echo "== 备份完成: $OUT =="
+echo "== 备份完成 / backup finished: $OUT =="
 du -sh "$OUT"
-echo "建议对关键分区做双端 sha256 校验 (见 docs/05-backup-restore.md)"
+echo "建议对关键分区做双端 sha256 校验 / recommended: verify sha256 of key partitions on both ends (docs/05-backup-restore.md)"

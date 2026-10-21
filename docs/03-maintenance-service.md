@@ -1,5 +1,8 @@
 # 03 —— Root 权限获取机制（厂商维护服务）
 
+> **EN abstract:** The root mechanism: GMUI ships a vendor after-sales service `xgimi_ssh` (init.xgimi.rc, root, oneshot) that starts a root sshd and runs `ssh $(cat /data/ssh/params)`; since /data/ssh is 0777, the device owner can make it execute their own maintenance script first — root command execution without touching the vendor's security design.
+
+
 ## 目标
 
 获取 **root 权限的维护命令执行能力**，然后只做一件事：

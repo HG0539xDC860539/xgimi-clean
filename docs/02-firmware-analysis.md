@@ -1,5 +1,8 @@
 # 02 —— 固件离线解包
 
+> **EN abstract:** How to unpack XGIMI's official USB recovery image (`.bin`) offline down to system/vendor partitions, and what the 2023 firmware revealed about ADB properties (network ADB used to be on by default).
+
+
 极米官方"USB 强刷包"（如 `XGIMI_IRONMAN_XK03U.bin`）是一个
 **头部 ASCII 脚本 + 裸数据**的容器，由 MBoot 在强刷时解释执行。
 

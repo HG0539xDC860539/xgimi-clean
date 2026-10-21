@@ -1,5 +1,8 @@
 # 06 —— FAQ
 
+> **EN abstract:** FAQ — why `adb connect` stays `unauthorized` even after the ADB opener (secure adbd, root-only key file, no consent dialog), and how the g/p2/p3 scripts get your key in.
+
+
 ## Q1: 装了 Z7X-ADB、ADB 已开启（5555 端口也通了），为什么 `adb connect` 还是 `unauthorized`？
 
 **Z7X-ADB 只让 adbd "开始监听"，不解决 "身份授权"。**

@@ -1,5 +1,8 @@
 # 05 —— 备份与恢复
 
+> **EN abstract:** Full firmware backup over ADB (`dd | gzip` per partition, with the partition map and MANIFEST) and how to restore any partition back over root.
+
+
 ## 备份（root 通道就绪后）
 
 ```bash

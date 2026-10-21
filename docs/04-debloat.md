@@ -1,5 +1,8 @@
 # 04 —— 净化清单
 
+> **EN abstract:** The de-bloat list: what we uninstall (`--user 0`, reversible), what we disable, and the hardware services you must NOT touch (keystone, ToF autofocus, HDMI player, MStar input stack), cross-checked against the overseas XGIMI DO-NOT-DISABLE lists in the cleanyourtv project.
+
+
 ## 卸载（`pm uninstall --user 0`，可用 `cmd package install-existing --user 0` 恢复）
 
 | 包名 | 作用 | 广告相关证据 |
@@ -23,6 +26,21 @@
 `com.xgimi.filemanager`（文件管理）、`com.xgimi.wirelessscreen`（投屏）、
 `com.xgimi.skin* / inuiserver`（皮肤主题）、`com.xgimi.autokst / tof`（校正）、
 `com.xgimi.user / account / transfer`、语音/蓝牙/投屏相关全家。
+
+以下硬件服务已对照 cleanyourtv 海外极米机型的 DO-NOT-DISABLE 清单交叉核实，
+在本机（真机包快照）确认存在，**同样不要动**：
+
+| 包名 | 作用 | 动了会怎样 |
+|---|---|---|
+| `com.xgimi.xhplayer` | HDMI 输入播放器 + 游戏模式 | HDMI 源无法打开 |
+| `com.xgimi.xrmservice` | 画质/声音自适应、亮度增强 | 画质调校失效 |
+| `com.xgimi.soundermodeservice` | 音筒/蓝牙音箱模式 | 音筒模式失效 |
+| `com.xgimi.controllerconnection` | 遥控器配对 | 新遥控配不上 |
+| `com.xgimi.newbluetoothota` | 蓝牙固件 OTA | 遥控器固件无法升级 |
+| `com.xgimi.bootwizard` | 首启向导 | 恢复出厂卡引导 |
+| `com.mstar.tv.service` / `com.mstar.tvsetting` / `com.mstar.tv` / `com.mstar.android.providers.tv` | MStar 通道/热键/菜单/TV Provider（GMUI 上替代海外 `tvinput`/`misckey` 的角色） | HDMI 通道、遥控热键、设置菜单损坏 |
+
+> 海外版（Android TV/Google TV 机型）参考：`cleanyourtv` 仓库 `examples/xgimi-*/debloat.txt`。
 
 > 想要"零信息流"桌面可另装 Projectivity Launcher / Emotn UI 等，
 > 步骤（以 Emotn UI 为例）：
