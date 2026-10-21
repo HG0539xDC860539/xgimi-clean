@@ -112,6 +112,10 @@ busybox wget -O p4 http://<PC_IP>:8000/p4;sh p4   # TermOne 里执行
 
 全部为 `--user 0` 级别，恢复命令见 `post/restore.sh`。
 
+**可选进阶**：换装零信息流的第三方桌面（实测 EMOTN UI，包名 `com.oversea.aslauncher`），
+随时可一键复原 GMUI 官方桌面 —— 见 [docs/04-debloat.md](docs/04-debloat.md)
+或 `bash post/restore.sh <IP>:5555 home`。
+
 ## 技术原理（简版，详见 docs/）
 
 - **root 机制**：GMUI 固件预装了厂商售后维护服务 `/vendor/bin/xgimi_ssh.sh`——

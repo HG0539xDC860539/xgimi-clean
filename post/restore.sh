@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # restore.sh —— 恢复被卸载/禁用的组件
 # restore.sh — restore the removed/disabled components
-# 用法 / Usage: bash restore.sh <IP>:5555 [all|adservice|atmosphere|screensaver|datareporter|activitypage|upgrade]
+# 用法 / Usage: bash restore.sh <IP>:5555 [all|adservice|atmosphere|screensaver|datareporter|activitypage|upgrade|home]
 set -e
-DEV="${1:?用法 / usage: bash restore.sh <IP>:5555 [all|component]}"
+DEV="${1:?用法 / usage: bash restore.sh <IP>:5555 [all|component|home]}"
 WHAT="${2:-all}"
 adb connect "$DEV" || true
 
@@ -17,6 +17,13 @@ case "$WHAT" in
     adb -s "$DEV" shell "pm enable com.xgimi.upgrade" || true
     ;;
   upgrade) adb -s "$DEV" shell "pm enable com.xgimi.upgrade" || true ;;
+  home)
+    echo "--- 恢复 GMUI 官方桌面 / restoring the stock GMUI launcher"
+    adb -s "$DEV" shell "pm enable com.xgimi.home" || true
+    adb -s "$DEV" shell "cmd package set-home-activity com.xgimi.home/com.xgimi.module.cellview.home.ui.HomeActivity" \
+      || echo "  (组件名不匹配时: pm enable 后重启即可, GMUI 会自行接管 HOME / if the component differs, just reboot after pm enable)"
+    echo "--- 提示: 别忘了重启 / note: reboot to apply"
+    ;;
   *) restore "$WHAT" ;;
 esac
 echo "== 完成 / done =="

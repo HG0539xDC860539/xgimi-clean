@@ -1,6 +1,6 @@
 # 04 —— 净化清单
 
-> **EN abstract:** The de-bloat list: what we uninstall (`--user 0`, reversible), what we disable, and the hardware services you must NOT touch (keystone, ToF autofocus, HDMI player, MStar input stack), cross-checked against the overseas XGIMI DO-NOT-DISABLE lists in the cleanyourtv project.
+> **EN abstract:** The de-bloat list: what we uninstall (`--user 0`, reversible), what we disable, the hardware services you must NOT touch (keystone, ToF autofocus, HDMI player, MStar input stack, cross-checked against the overseas XGIMI DO-NOT-DISABLE lists in the cleanyourtv project), plus the tested third-party-launcher swap (EMOTN UI, `com.oversea.aslauncher`) and how to switch back to the stock GMUI home.
 
 
 ## 卸载（`pm uninstall --user 0`，可用 `cmd package install-existing --user 0` 恢复）
@@ -42,15 +42,39 @@
 
 > 海外版（Android TV/Google TV 机型）参考：`cleanyourtv` 仓库 `examples/xgimi-*/debloat.txt`。
 
-> 想要"零信息流"桌面可另装 Projectivity Launcher / Emotn UI 等，
-> 步骤（以 Emotn UI 为例）：
-> ```bash
-> adb shell cmd package set-home-activity <包名>/<主Activity>   # 设为首选
-> adb shell pm disable-user --user 0 com.xgimi.home              # GMUI会把HOME键指回自家桌面，需禁用
-> adb reboot
-> ```
-> 实测 NEW Z6X v12.15.214：禁用后开机直达第三方桌面，系统自带 FallbackHome 兜底，
-> 随时可 `pm enable com.xgimi.home` 换回。
+## 第三方桌面（实测 EMOTN UI，包名 `com.oversea.aslauncher`）
+
+想要"零信息流"桌面可另装第三方启动器（EMOTN UI / Projectivity Launcher 等）。实测流程：
+
+```bash
+# 1) U盘/应用市场安装 EMOTN UI，打开一次
+# 2) 设为首选桌面（组件名可用下方查询命令确认）
+adb shell dumpsys package com.oversea.aslauncher | grep -B2 'android.intent.category.HOME'
+adb shell cmd package set-home-activity <包名>/<主Activity>
+# 3) GMUI 会把 HOME 键指回自家桌面，需禁用官方桌面
+adb shell pm disable-user --user 0 com.xgimi.home
+adb reboot
+```
+
+> 实测 NEW Z6X v12.15.214：禁用后开机直达第三方桌面，系统自带 FallbackHome 兜底。
+
+## 复原 GMUI 官方桌面
+
+第三方桌面用腻了随时换回，完全可逆：
+
+```bash
+adb shell pm enable com.xgimi.home            # 1) 重新启用官方桌面
+adb shell cmd package set-home-activity \
+  com.xgimi.home/com.xgimi.module.cellview.home.ui.HomeActivity   # 2) 设回首选（v12.15.214 实测组件）
+adb reboot                                    # 3) 重启生效
+```
+
+> - 只做第 1 步 + 重启通常也够：GMUI 会自己把 HOME 键夺回（当初禁它就是因为这个）。
+> - 若其他固件版本组件名不同：`adb shell cmd package resolve-activity --brief -c android.intent.category.HOME` 查当前首选；
+>   或 `pm enable` 后按 HOME，在弹出的选择器里选"极米桌面"并勾"始终"。
+> - 想彻底移除 EMOTN UI：`adb shell pm uninstall --user 0 com.oversea.aslauncher`
+>   （同样可用 `cmd package install-existing --user 0` 恢复）。
+> - 一键操作：`bash post/restore.sh <IP>:5555 home`。
 
 ## 进阶清单（实测可再释放 ~200MB，均为出厂预装）
 

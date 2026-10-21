@@ -120,6 +120,10 @@ runs it as root.
 
 All removals are `--user 0` level; restore with `post/restore.sh` (one command, or per package).
 
+**Optional extra:** swap in a third-party launcher for an ad-free home (tested with EMOTN UI,
+`com.oversea.aslauncher`), and switch back to the stock GMUI launcher at any time —
+see [docs/04-debloat.md](docs/04-debloat.md) or `bash post/restore.sh <IP>:5555 home`.
+
 **Hardware services you must NOT touch** — keystone correction, ToF autofocus, the HDMI input
 player, the MStar input/hotkey stack, remote pairing — are documented in
 [docs/04-debloat.md](docs/04-debloat.md), cross-checked against the overseas XGIMI DO-NOT-DISABLE
