@@ -6,6 +6,8 @@
 > 理论兼容：同平台同年代的 Z6X Pro / Z7X / H 系列等 GMUI 机型（未逐一验证）
 > 原则：**不动系统分区、不刷机、全部操作可逆**，保留官方最新固件与界面
 
+<p align="center"><img src="docs/img/new-z6x.jpg" width="720" alt="极米 NEW Z6X 实机"></p>
+
 ---
 
 ## 这是什么

@@ -6,6 +6,8 @@
 > **Likely compatible:** other GMUI-era machines of the same generation (Z6X Pro / Z7X / H series) — not individually verified
 > **Principles:** no system-partition changes, no flashing, **every step reversible**; the latest stock firmware and UI stay
 
+<p align="center"><img src="docs/img/new-z6x.jpg" width="720" alt="XGIMI NEW Z6X — the tested unit"></p>
+
 ---
 
 ## What this is
